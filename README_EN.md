@@ -1,13 +1,12 @@
 ---
-title: Bilingual Subtitle Tool
+title: 双语字幕工具 - Bilingual Subtitle Tool
 emoji: 🎬
-colorFrom: yellow
-colorTo: indigo
-sdk: gradio
-sdk_version: 5.39.0
-app_file: main.py
+colorFrom: blue
+colorTo: green
+sdk: docker
 pinned: false
 license: mit
+app_port: 7860
 ---
 
 # 🎬 Bilingual Subtitle Tool
