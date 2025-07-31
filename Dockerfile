@@ -19,6 +19,10 @@ ENV FC_LANG=zh-cn
 ENV WHISPER_MODEL_SIZE=base
 ENV WHISPER_DEVICE=cpu
 ENV MAX_FILE_SIZE=200
+# 设置HuggingFace缓存目录到应用目录
+ENV HF_HOME=/app/.cache/huggingface
+ENV TRANSFORMERS_CACHE=/app/.cache/huggingface/transformers
+ENV HF_DATASETS_CACHE=/app/.cache/huggingface/datasets
 
 # 更新包管理器并安装系统依赖
 RUN apt-get update && apt-get install -y \
@@ -63,12 +67,18 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # 复制应用代码
 COPY . .
 
-# 复制并设置启动脚本权限
-COPY start.sh .
-RUN chmod +x start.sh main.py
+# 创建应用用户
+RUN useradd -m -u 1000 appuser && \
+    chown -R appuser:appuser /app
 
-# 创建临时目录
-RUN mkdir -p temp
+# 切换到应用用户
+USER appuser
+
+# 复制并设置启动脚本权限
+RUN chmod +x start.sh main.py test_environment.sh
+
+# 创建缓存和临时目录，设置权限
+RUN mkdir -p /app/.cache/huggingface temp
 
 # 暴露端口
 EXPOSE 7860

@@ -3,6 +3,7 @@
 使用faster-whisper进行英文语音转文字
 """
 
+import os
 import logging
 from typing import List, Dict, Optional, Tuple
 from faster_whisper import WhisperModel
@@ -34,10 +35,18 @@ class SpeechRecognizer:
         if self.model is None:
             try:
                 logger.info(f"正在加载Whisper模型: {self.model_size}")
+                
+                # 设置缓存目录
+                cache_dir = os.environ.get('HF_HOME', '/app/.cache/huggingface')
+                if not os.path.exists(cache_dir):
+                    os.makedirs(cache_dir, exist_ok=True)
+                    os.chmod(cache_dir, 0o755)
+                
                 self.model = WhisperModel(
                     self.model_size, 
                     device=self.device,
-                    compute_type="float16" if self.device == "cuda" else "int8"
+                    compute_type="float16" if self.device == "cuda" else "int8",
+                    download_root=cache_dir
                 )
                 logger.info("Whisper模型加载成功")
             except Exception as e:
@@ -49,7 +58,8 @@ class SpeechRecognizer:
                     self.model = WhisperModel(
                         self.model_size, 
                         device="cpu",
-                        compute_type="int8"
+                        compute_type="int8",
+                        download_root=cache_dir
                     )
                 else:
                     raise Exception(f"模型加载失败: {str(e)}")

@@ -51,12 +51,13 @@ Thumbs.db
 .coverage
 htmlcov/
 
-# 文档
+# 文档（保留部署指南）
 *.md
 !README.md
+!README_SPACES.md
+!DEPLOYMENT_GUIDE.md
 
 # Docker相关
-Dockerfile
 .dockerignore
 docker-compose.yml
 

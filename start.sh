@@ -6,9 +6,16 @@ set -e
 
 echo "🚀 启动双语字幕工具..."
 
+# 确保缓存目录存在
+echo "📁 设置缓存目录..."
+mkdir -p /app/.cache/huggingface
+export HF_HOME=/app/.cache/huggingface
+export TRANSFORMERS_CACHE=/app/.cache/huggingface/transformers
+export HF_DATASETS_CACHE=/app/.cache/huggingface/datasets
+
 # 检查字体安装
 echo "📝 检查中文字体支持..."
-fc-list | grep -i "noto\|wqy" | head -5
+fc-list | grep -i "noto\|wqy" | head -5 || echo "字体检查完成"
 
 # 检查FFmpeg是否可用
 echo "🎬 检查FFmpeg支持..."
@@ -17,7 +24,7 @@ ffmpeg -version | head -1
 # 检查Python环境
 echo "🐍 检查Python环境..."
 python --version
-pip list | grep -E "(torch|gradio|ffmpeg|whisper)" || echo "正在安装依赖..."
+echo "缓存目录: $HF_HOME"
 
 # 设置字体环境变量
 export FONTCONFIG_PATH=/etc/fonts

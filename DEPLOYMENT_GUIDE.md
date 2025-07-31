@@ -82,22 +82,34 @@ ENV FC_LANG=zh-cn
 - 使用start.sh脚本预检查环境
 - 健康检查确保服务正常
 
-## 故障排除
+## 常见问题解决
 
-### 中文字符仍显示为方块
-1. 检查字体是否正确安装：`fc-list | grep -i cjk`
-2. 检查字体配置：`fc-match sans-serif`
-3. 检查环境变量设置
+### HuggingFace缓存权限问题
 
-### 构建失败
-1. 检查Dockerfile语法
-2. 检查requirements.txt依赖
-3. 查看HF Spaces构建日志
+**问题**: `[Errno 13] Permission denied: '/.cache'`
 
-### 运行时错误
-1. 检查启动脚本权限
-2. 检查FFmpeg安装
-3. 查看应用日志
+**原因**: HuggingFace模型尝试写入系统根目录下的缓存文件夹，但容器没有写入权限。
+
+**解决方案**:
+1. **环境变量设置**: 将缓存目录重定向到应用目录
+   ```dockerfile
+   ENV HF_HOME=/app/.cache/huggingface
+   ENV TRANSFORMERS_CACHE=/app/.cache/huggingface/transformers
+   ENV HF_DATASETS_CACHE=/app/.cache/huggingface/datasets
+   ```
+
+2. **用户权限管理**: 创建专用用户避免权限冲突
+   ```dockerfile
+   RUN useradd -m -u 1000 appuser && \
+       chown -R appuser:appuser /app
+   USER appuser
+   ```
+
+3. **模型加载修改**: 在代码中指定下载目录
+   ```python
+   cache_dir = os.environ.get('HF_HOME', '/app/.cache/huggingface')
+   model = WhisperModel(model_size, download_root=cache_dir)
+   ```
 
 ## 测试建议
 
