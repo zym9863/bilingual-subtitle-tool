@@ -7,7 +7,6 @@ import os
 import logging
 from typing import List, Dict, Optional
 import pysrt
-from datetime import timedelta
 from .utils import create_temp_file, sanitize_filename, ProgressCallback
 
 logger = logging.getLogger(__name__)
@@ -19,9 +18,16 @@ class SubtitleGenerator:
     def __init__(self):
         self.temp_files = []
     
-    def _seconds_to_timedelta(self, seconds: float) -> timedelta:
-        """将秒数转换为timedelta对象"""
-        return timedelta(seconds=seconds)
+    def _seconds_to_subriptime(self, seconds: float) -> pysrt.SubRipTime:
+        """将秒数转换为SubRipTime对象"""
+        total_seconds = int(seconds)
+        milliseconds = int((seconds - total_seconds) * 1000)
+        
+        hours = total_seconds // 3600
+        minutes = (total_seconds % 3600) // 60
+        seconds = total_seconds % 60
+        
+        return pysrt.SubRipTime(hours, minutes, seconds, milliseconds)
     
     def _format_subtitle_text(
         self, 
@@ -93,8 +99,8 @@ class SubtitleGenerator:
             
             for i, segment in enumerate(segments):
                 # 获取时间戳
-                start_time = self._seconds_to_timedelta(segment['start'])
-                end_time = self._seconds_to_timedelta(segment['end'])
+                start_time = self._seconds_to_subriptime(segment['start'])
+                end_time = self._seconds_to_subriptime(segment['end'])
                 
                 # 获取文本
                 original_text = segment.get('original_text', segment.get('text', ''))
