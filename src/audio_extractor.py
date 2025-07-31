@@ -68,7 +68,6 @@ class AudioExtractor:
             audio = video.audio
             audio.write_audiofile(
                 output_path,
-                verbose=False,
                 logger=None  # 禁用MoviePy的日志输出
             )
             
