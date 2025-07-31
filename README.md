@@ -1,4 +1,18 @@
+---
+title: Bilingual Subtitle Tool
+emoji: 🎬
+colorFrom: yellow
+colorTo: indigo
+sdk: gradio
+sdk_version: 4.44.0
+app_file: main.py
+pinned: false
+license: mit
+---
+
 # 🎬 双语字幕工具 (Bilingual Subtitle Tool)
+
+🇨🇳 中文 | [🇺🇸 English](README_EN.md)
 
 一个轻量级的工具，为带英文音频的视频添加中英双语字幕。支持本地GPU和Hugging Face Spaces CPU环境。
 
