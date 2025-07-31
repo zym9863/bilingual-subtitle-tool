@@ -6,7 +6,7 @@
 import os
 import logging
 from typing import Optional, Tuple
-from moviepy.editor import VideoFileClip
+from moviepy import VideoFileClip
 from .utils import create_temp_file, cleanup_temp_files, ProgressCallback
 
 logger = logging.getLogger(__name__)
