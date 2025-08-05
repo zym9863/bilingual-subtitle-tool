@@ -210,7 +210,7 @@ class BilingualSubtitleApp:
                     with gr.Accordion("⚙️ 配置选项", open=True):
                         whisper_model = gr.Dropdown(
                             choices=["tiny", "base", "small", "medium", "large"],
-                            value="base",
+                            value="medium",
                             label="🎤 Whisper模型大小",
                             info="更大的模型识别更准确但速度更慢"
                         )
@@ -241,7 +241,7 @@ class BilingualSubtitleApp:
 
                         burn_subtitles = gr.Checkbox(
                             label="🔥 烧录字幕到视频",
-                            value=False,
+                            value=True,
                             info="将字幕永久嵌入视频中"
                         )
 
