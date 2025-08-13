@@ -96,7 +96,7 @@ BAIDU_APPID=your_baidu_appid_here
 BAIDU_APPKEY=your_baidu_appkey_here
 
 # Whisper Model Configuration
-WHISPER_MODEL_SIZE=base  # tiny, base, small, medium, large
+WHISPER_MODEL_SIZE=small  # tiny, base, small, medium, large
 WHISPER_DEVICE=auto      # auto, cpu, cuda
 
 # Subtitle Style Configuration

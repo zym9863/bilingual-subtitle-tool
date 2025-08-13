@@ -210,7 +210,7 @@ class BilingualSubtitleApp:
                     with gr.Accordion("⚙️ 配置选项", open=True):
                         whisper_model = gr.Dropdown(
                             choices=["tiny", "base", "small", "medium", "large"],
-                            value="medium",
+                            value="small",
                             label="🎤 Whisper模型大小",
                             info="更大的模型识别更准确但速度更慢"
                         )

@@ -16,7 +16,7 @@ ENV LC_ALL=C.UTF-8
 ENV FONTCONFIG_PATH=/etc/fonts
 ENV FC_LANG=zh-cn
 # HuggingFace Spaces优化
-ENV WHISPER_MODEL_SIZE=base
+ENV WHISPER_MODEL_SIZE=small
 ENV WHISPER_DEVICE=cpu
 ENV MAX_FILE_SIZE=200
 # 设置HuggingFace缓存目录到应用目录

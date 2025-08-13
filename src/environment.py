@@ -65,7 +65,7 @@ class EnvironmentDetector:
         if EnvironmentDetector.is_huggingface_spaces():
             # Hugging Face Spaces通常是CPU环境
             config.update({
-                "whisper_model_size": "base",  # 使用较小的模型
+                "whisper_model_size": "small",  # 使用较小的模型
                 "whisper_device": "cpu",
                 "max_file_size": 100,  # 限制文件大小
                 "batch_size": 1,
@@ -117,7 +117,7 @@ class EnvironmentSetup:
         """为Hugging Face Spaces环境进行设置"""
         # 设置环境变量
         os.environ["WHISPER_DEVICE"] = "cpu"
-        os.environ["WHISPER_MODEL_SIZE"] = "base"
+        os.environ["WHISPER_MODEL_SIZE"] = "small"
         os.environ["MAX_FILE_SIZE"] = "100"
         
         # 创建必要的目录

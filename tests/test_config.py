@@ -13,7 +13,7 @@ class TestConfig(unittest.TestCase):
     
     def test_default_values(self):
         """测试默认配置值"""
-        self.assertEqual(Config.WHISPER_MODEL_SIZE, "base")
+        self.assertEqual(Config.WHISPER_MODEL_SIZE, "small")
         self.assertEqual(Config.WHISPER_DEVICE, "auto")
         self.assertEqual(Config.SUBTITLE_FONT_SIZE, 24)
         self.assertEqual(Config.SUBTITLE_FONT_COLOR, "white")

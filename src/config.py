@@ -37,7 +37,7 @@ class Config:
     BAIDU_APPKEY: Optional[str] = os.getenv("BAIDU_APPKEY")
     
     # Whisper模型配置
-    WHISPER_MODEL_SIZE: str = os.getenv("WHISPER_MODEL_SIZE", "base")
+    WHISPER_MODEL_SIZE: str = os.getenv("WHISPER_MODEL_SIZE", "small")
     WHISPER_DEVICE: str = os.getenv("WHISPER_DEVICE", "auto")  # auto, cpu, cuda
     
     # 字幕配置
