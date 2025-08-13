@@ -1,0 +1,85 @@
+name: Sync to Hugging Face Spaces
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+concurrency:
+  group: spaces-sync-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sync-to-space:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install "huggingface_hub>=0.21.4"
+
+      - name: Sync to Hugging Face Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE_ID: ${{ secrets.HF_SPACE_ID }}
+          HF_SPACE_SDK: ${{ secrets.HF_SPACE_SDK }}
+          HF_SPACE_PRIVATE: ${{ secrets.HF_SPACE_PRIVATE }}
+        run: |
+          python - << 'PY'
+          import os, sys
+          from huggingface_hub import HfApi
+          token = os.environ.get("HF_TOKEN")
+          if not token:
+              print("HF_TOKEN is not set. Please add it as a repository secret.", file=sys.stderr)
+              sys.exit(1)
+          repo_id = os.environ.get("HF_SPACE_ID") or os.environ.get("GITHUB_REPOSITORY")
+          if not repo_id or "/" not in repo_id:
+              print("Unable to determine Space ID (owner/space). Set HF_SPACE_ID secret.", file=sys.stderr)
+              sys.exit(1)
+          sdk = (os.environ.get("HF_SPACE_SDK") or ("docker" if os.path.exists("Dockerfile") else "gradio")).strip().lower()
+          private = (os.environ.get("HF_SPACE_PRIVATE") or "false").strip().lower() in {"1","true","yes","y"}
+          api = HfApi(token=token)
+          # Ensure Space exists
+          need_create = False
+          try:
+              api.repo_info(repo_id=repo_id, repo_type="space", token=token)
+          except Exception:
+              need_create = True
+          if need_create:
+              print(f"Creating Space {repo_id} (sdk={sdk}, private={private})")
+              api.create_repo(repo_id=repo_id, repo_type="space", private=private, space_sdk=sdk, exist_ok=True, token=token)
+          # Upload folder content
+          ignore = [
+              ".git/*",
+              ".github/*",
+              "**/__pycache__/**",
+              "**/*.pyc",
+              "**/.pytest_cache/**",
+              "venv/**",
+              ".venv/**",
+              ".env",
+              ".env.*",
+              "tmp_rovodev_*",
+          ]
+          sha = os.environ.get("GITHUB_SHA", "")[:7]
+          msg = f"Sync from GitHub {sha}".strip()
+          print(f"Uploading repository contents to https://huggingface.co/spaces/{repo_id}")
+          api.upload_folder(
+              folder_path=".",
+              path_in_repo="",
+              repo_id=repo_id,
+              repo_type="space",
+              commit_message=msg,
+              ignore_patterns=ignore,
+              token=token,
+          )
+          print("Sync complete.")
+          PY
