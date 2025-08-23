@@ -135,7 +135,6 @@ class SpeechRecognizer:
             List[Dict]: 包含转录结果的列表，每个元素包含start, end, text字段
         """
         import gc
-        import psutil
         import os
         
         self._load_model()
@@ -143,14 +142,26 @@ class SpeechRecognizer:
         if progress_callback:
             progress_callback.update(10, "开始语音识别...")
         
-        # 检查可用内存
-        available_memory_gb = psutil.virtual_memory().available / (1024**3)
+        # 检查文件大小并决定是否分块处理
         audio_size_mb = os.path.getsize(audio_path) / (1024**2)
+        logger.info(f"音频文件大小: {audio_size_mb:.1f}MB")
         
-        logger.info(f"可用内存: {available_memory_gb:.1f}GB, 音频文件大小: {audio_size_mb:.1f}MB")
+        # 检查可用内存（可选，如果psutil可用）
+        available_memory_gb = None
+        try:
+            import psutil
+            available_memory_gb = psutil.virtual_memory().available / (1024**3)
+            logger.info(f"可用内存: {available_memory_gb:.1f}GB")
+        except ImportError:
+            logger.info("psutil未安装，使用文件大小判断是否分块处理")
         
-        # 如果文件很大或内存不足，启用分块处理
-        should_chunk = (audio_size_mb > 100) or (available_memory_gb < 4) if enable_memory_optimization else False
+        # 如果文件很大或内存可能不足，启用分块处理
+        if enable_memory_optimization:
+            should_chunk = audio_size_mb > 100
+            if available_memory_gb is not None:
+                should_chunk = should_chunk or (available_memory_gb < 4)
+        else:
+            should_chunk = False
         
         try:
             logger.info(f"开始转录音频文件: {audio_path}")

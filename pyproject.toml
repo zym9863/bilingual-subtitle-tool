@@ -14,7 +14,8 @@ dependencies = [
     "torchaudio>=2.0.0",
     "ffmpeg-python>=0.2.0",
     "numpy>=1.21.0",
-    "python-dotenv>=1.0.0"
+    "python-dotenv>=1.0.0",
+    "psutil>=7.0.0",
 ]
 
 [project.optional-dependencies]
