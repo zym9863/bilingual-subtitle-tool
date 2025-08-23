@@ -13,7 +13,13 @@ import shutil
 # 导入自定义模块
 from src.config import config
 from src.audio_extractor import AudioExtractor
-from src.speech_recognizer import SpeechRecognizer
+from src.speech_recognizer import (
+    SpeechRecognizer, 
+    SpeechRecognitionError, 
+    ModelLoadError, 
+    AudioProcessingError, 
+    InsufficientResourceError
+)
 from src.translator import BaiduTranslator
 from src.subtitle_generator import SubtitleGenerator
 from src.video_processor import VideoProcessor
@@ -21,6 +27,9 @@ from src.utils import (
     is_video_file,
     validate_file_size,
     get_file_size_mb,
+    validate_file_content,
+    check_file_permissions,
+    calculate_file_hash,
     ProgressCallback,
     ensure_dir,
     sanitize_filename
@@ -84,6 +93,19 @@ class BilingualSubtitleApp:
             if not validate_file_size(video_path):
                 file_size = get_file_size_mb(video_path)
                 return None, None, None, f"❌ 文件过大 ({file_size:.1f}MB)，最大支持 {config.MAX_FILE_SIZE}MB"
+            
+            # 新增：文件内容安全验证
+            is_valid, error_msg = validate_file_content(video_path)
+            if not is_valid:
+                return None, None, None, f"❌ 文件安全验证失败: {error_msg}"
+            
+            # 新增：文件权限检查
+            if not check_file_permissions(video_path):
+                return None, None, None, "❌ 文件权限不安全，请检查文件来源"
+            
+            # 新增：记录文件哈希值（用于安全审计）
+            file_hash = calculate_file_hash(video_path)
+            logger.info(f"处理文件哈希: {file_hash[:16]}...")  # 只记录前16位，避免日志过长
 
             # 配置翻译器
             if baidu_appid and baidu_appkey:
@@ -157,9 +179,61 @@ class BilingualSubtitleApp:
 
             return output_video_path, subtitle_path, log_text, status
 
-        except Exception as e:
-            error_msg = f"❌ 处理失败: {str(e)}"
+        except ModelLoadError as e:
+            error_msg = f"❌ 模型加载失败: {str(e)}"
             logger.error(error_msg)
+            return None, None, str(e), error_msg
+            
+        except InsufficientResourceError as e:
+            error_msg = f"❌ 资源不足: {str(e)}"
+            logger.error(error_msg)
+            return None, None, str(e), error_msg
+            
+        except AudioProcessingError as e:
+            error_msg = f"❌ 音频处理失败: {str(e)}"
+            logger.error(error_msg)
+            return None, None, str(e), error_msg
+            
+        except SpeechRecognitionError as e:
+            error_msg = f"❌ 语音识别失败: {str(e)}"
+            logger.error(error_msg)
+            return None, None, str(e), error_msg
+            
+        except FileNotFoundError as e:
+            error_msg = f"❌ 文件未找到: 请检查文件路径和权限"
+            logger.error(f"文件未找到: {e}")
+            return None, None, str(e), error_msg
+            
+        except PermissionError as e:
+            error_msg = f"❌ 权限错误: 无法访问文件或目录"
+            logger.error(f"权限错误: {e}")
+            return None, None, str(e), error_msg
+            
+        except MemoryError as e:
+            error_msg = f"❌ 内存不足: 请尝试使用更小的模型或处理更小的文件"
+            logger.error(f"内存错误: {e}")
+            return None, None, str(e), error_msg
+            
+        except KeyboardInterrupt:
+            error_msg = f"❌ 操作被用户取消"
+            logger.info("操作被用户取消")
+            return None, None, "操作被取消", error_msg
+            
+        except Exception as e:
+            # 记录详细错误信息但给用户友好的提示
+            logger.error(f"未知错误: {str(e)}", exc_info=True)
+            
+            # 根据错误类型提供更好的提示
+            error_str = str(e).lower()
+            if "network" in error_str or "connection" in error_str:
+                error_msg = f"❌ 网络连接问题: 请检查网络连接并重试"
+            elif "disk" in error_str or "space" in error_str:
+                error_msg = f"❌ 磁盘空间不足: 请清理磁盘空间后重试"
+            elif "timeout" in error_str:
+                error_msg = f"❌ 操作超时: 文件可能过大，请尝试处理较小的文件"
+            else:
+                error_msg = f"❌ 处理失败: {str(e)}"
+                
             return None, None, str(e), error_msg
 
 
