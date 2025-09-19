@@ -32,6 +32,9 @@ except ImportError:
 class Config:
     """应用程序配置类"""
     
+    # 语言配置
+    DEFAULT_AUDIO_LANGUAGE: str = os.getenv("DEFAULT_AUDIO_LANGUAGE", "en")  # 默认音频语言
+
     # 百度翻译API配置
     BAIDU_APPID: Optional[str] = os.getenv("BAIDU_APPID")
     BAIDU_APPKEY: Optional[str] = os.getenv("BAIDU_APPKEY")
@@ -75,14 +78,19 @@ class Config:
         return cls.WHISPER_DEVICE
 
     @classmethod
-    def get_optimized_model_size(cls) -> str:
-        """根据环境获取优化的模型大小"""
+    def get_optimized_model_size(cls, language: str = "en") -> str:
+        """根据环境和语言获取优化的模型大小"""
         if EnvironmentDetector.is_huggingface_spaces():
             # Hugging Face Spaces使用较小的模型
             return "base"
         elif cls.is_gpu_available():
             # 有GPU时使用更大的模型
-            return "large" if cls.WHISPER_MODEL_SIZE == "auto" else cls.WHISPER_MODEL_SIZE
+            if language == "zh":
+                # 中文语音识别可能需要稍大的模型以获得更好效果
+                return "medium" if cls.WHISPER_MODEL_SIZE == "auto" else cls.WHISPER_MODEL_SIZE
+            else:
+                # 英文使用默认配置
+                return "large" if cls.WHISPER_MODEL_SIZE == "auto" else cls.WHISPER_MODEL_SIZE
         else:
             # CPU环境使用中等模型
             return "medium" if cls.WHISPER_MODEL_SIZE == "auto" else cls.WHISPER_MODEL_SIZE

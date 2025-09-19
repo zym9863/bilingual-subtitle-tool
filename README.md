@@ -13,13 +13,13 @@ app_port: 7860
 
 🇨🇳 中文 | [🇺🇸 English](README_EN.md)
 
-一个轻量级的工具，为带英文音频的视频添加中英双语字幕。支持本地GPU和Hugging Face Spaces CPU环境。
+一个轻量级的工具，为带中文或英文音频的视频添加中英双语字幕。支持本地GPU和Hugging Face Spaces CPU环境。
 
 ## ✨ 功能特点
 
 - 🎵 **自动音频提取**: 使用MoviePy从视频中提取音频
-- 🎤 **AI语音识别**: 集成faster-whisper，支持GPU加速
-- 🌐 **智能翻译**: 使用百度翻译API进行英中翻译
+- 🎤 **AI语音识别**: 集成faster-whisper，支持中文和英文语音识别，可GPU加速
+- 🌐 **智能翻译**: 使用百度翻译API进行双向翻译（中译英、英译中）
 - 📝 **字幕生成**: 生成SRT格式的双语字幕文件
 - 🔥 **字幕烧录**: 可选将字幕永久嵌入视频
 - 🖥️ **友好界面**: 基于Gradio的Web界面
@@ -99,6 +99,9 @@ BAIDU_APPKEY=your_baidu_appkey_here
 WHISPER_MODEL_SIZE=small  # tiny, base, small, medium, large
 WHISPER_DEVICE=auto      # auto, cpu, cuda
 
+# 语言配置
+DEFAULT_AUDIO_LANGUAGE=en  # 默认音频语言：en(英文), zh(中文)
+
 # 字幕样式配置
 SUBTITLE_FONT_SIZE=24
 SUBTITLE_FONT_COLOR=white
@@ -124,13 +127,22 @@ MAX_FILE_SIZE=500        # MB
 
 1. **上传视频**: 支持 MP4, AVI, MOV, MKV, WMV, FLV, WebM 格式
 2. **配置选项**:
+   - **选择音频语言**: 中文或英文（影响语音识别和翻译方向）
    - 选择Whisper模型大小
    - 输入百度翻译API密钥
-   - 选择字幕类型 (双语/仅英文/仅中文)
+   - 选择字幕类型 (双语/仅原文/仅译文)
    - 选择是否烧录字幕到视频
    - 调整字体大小和颜色
 3. **开始处理**: 点击"开始处理"按钮
 4. **下载结果**: 处理完成后下载生成的字幕文件和视频文件
+
+### 🎯 处理流程说明
+
+**中文音频视频**：
+1. 提取音频 → 2. 中文语音识别 → 3. 中译英翻译 → 4. 生成中英双语字幕
+
+**英文音频视频**：
+1. 提取音频 → 2. 英文语音识别 → 3. 英译中翻译 → 4. 生成英中双语字幕
 
 ## 🌐 部署到Hugging Face Spaces
 

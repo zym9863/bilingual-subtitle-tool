@@ -63,6 +63,7 @@ class BilingualSubtitleApp:
     def process_video(
         self,
         video_file,
+        audio_language: str,
         whisper_model_size: str,
         baidu_appid: str,
         baidu_appkey: str,
@@ -131,14 +132,31 @@ class BilingualSubtitleApp:
             progress(0.3, "正在进行语音识别...")
             log_messages.append("🎤 开始语音识别...")
 
-            segments = self.speech_recognizer.transcribe(audio_path)
+            segments = self.speech_recognizer.transcribe(
+                audio_path,
+                language=audio_language
+            )
             log_messages.append(f"✅ 语音识别完成，识别到 {len(segments)} 个段落")
 
             # 步骤3: 翻译
             progress(0.6, "正在翻译文本...")
             log_messages.append("🌐 开始翻译文本...")
 
-            translated_segments = self.translator.translate_segments(segments)
+            # 根据音频语言确定翻译方向
+            if audio_language == "zh":
+                # 中文音频：中译英
+                from_lang, to_lang = "zh", "en"
+                log_messages.append("📝 翻译方向：中文 → 英文")
+            else:
+                # 英文音频：英译中
+                from_lang, to_lang = "en", "zh"
+                log_messages.append("📝 翻译方向：英文 → 中文")
+
+            translated_segments = self.translator.translate_segments(
+                segments,
+                from_lang=from_lang,
+                to_lang=to_lang
+            )
             log_messages.append(f"✅ 翻译完成，处理了 {len(translated_segments)} 个段落")
 
             # 步骤4: 生成字幕文件
@@ -261,13 +279,13 @@ class BilingualSubtitleApp:
             gr.Markdown("""
             # 🎬 双语字幕工具
 
-            一个轻量级的工具，为带英文音频的视频添加中英双语字幕。
+            一个轻量级的工具，为带中文或英文音频的视频添加中英双语字幕。
 
             **功能特点:**
             - 🎵 自动提取视频音频
-            - 🎤 AI语音识别（支持GPU加速）
-            - 🌐 百度翻译API翻译
-            - 📝 生成SRT字幕文件
+            - 🎤 AI语音识别（支持中文和英文，可GPU加速）
+            - 🌐 百度翻译API双向翻译
+            - 📝 生成SRT双语字幕文件
             - 🔥 可选字幕烧录到视频
             """)
 
@@ -282,6 +300,16 @@ class BilingualSubtitleApp:
 
                     # 配置选项
                     with gr.Accordion("⚙️ 配置选项", open=True):
+                        audio_language = gr.Radio(
+                            choices=[
+                                ("中文", "zh"),
+                                ("英文", "en")
+                            ],
+                            value="en",
+                            label="🎵 音频语言",
+                            info="选择视频中的主要音频语言"
+                        )
+
                         whisper_model = gr.Dropdown(
                             choices=["tiny", "base", "small", "medium", "large"],
                             value="small",
@@ -391,6 +419,7 @@ class BilingualSubtitleApp:
                 fn=self.process_video,
                 inputs=[
                     video_input,
+                    audio_language,
                     whisper_model,
                     baidu_appid,
                     baidu_appkey,

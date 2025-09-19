@@ -200,21 +200,25 @@ class BaiduTranslator:
         raise Exception("翻译失败：超过最大重试次数")
     
     def translate_segments(
-        self, 
-        segments: List[Dict], 
+        self,
+        segments: List[Dict],
+        from_lang: str = "en",
+        to_lang: str = "zh",
         progress_callback: Optional[ProgressCallback] = None,
         batch_size: int = 5,
         max_workers: int = 3
     ) -> List[Dict]:
         """
         翻译多个文本段落，支持批量和并发处理
-        
+
         Args:
             segments: 包含文本段落的列表
+            from_lang: 源语言代码 (en, zh等)
+            to_lang: 目标语言代码 (zh, en等)
             progress_callback: 进度回调函数
             batch_size: 批处理大小
             max_workers: 最大并发工作线程数
-            
+
         Returns:
             List[Dict]: 包含原文和译文的段落列表
         """
@@ -251,7 +255,12 @@ class BaiduTranslator:
                 # 提交批次中的所有翻译任务
                 future_to_segment = {}
                 for idx, segment, original_text in batch:
-                    future = executor.submit(self._translate_with_retry, original_text)
+                    future = executor.submit(
+                        self._translate_with_retry,
+                        original_text,
+                        from_lang,
+                        to_lang
+                    )
                     future_to_segment[future] = (idx, segment, original_text)
                 
                 # 收集批次结果
@@ -265,7 +274,14 @@ class BaiduTranslator:
                         translated_segment = segment.copy()
                         translated_segment['original_text'] = original_text
                         translated_segment['translated_text'] = translated_text
-                        translated_segment['text'] = f"{original_text}\n{translated_text}"
+
+                        # 根据翻译方向生成双语字幕文本
+                        if from_lang == "zh" and to_lang == "en":
+                            # 中文音频：中文在上，英文在下
+                            translated_segment['text'] = f"{original_text}\n{translated_text}"
+                        else:
+                            # 英文音频：英文在上，中文在下（原逻辑）
+                            translated_segment['text'] = f"{original_text}\n{translated_text}"
                         
                         translated_segments[idx] = translated_segment
                         
@@ -293,20 +309,28 @@ class BaiduTranslator:
         logger.info(f"翻译完成，共处理 {total_segments} 个段落")
         return translated_segments
     
-    def _translate_with_retry(self, text: str, max_retries: int = 3) -> str:
+    def _translate_with_retry(
+        self,
+        text: str,
+        from_lang: str = "en",
+        to_lang: str = "zh",
+        max_retries: int = 3
+    ) -> str:
         """
         带重试的翻译方法（内部使用）
-        
+
         Args:
             text: 要翻译的文本
+            from_lang: 源语言代码
+            to_lang: 目标语言代码
             max_retries: 最大重试次数
-            
+
         Returns:
             str: 翻译结果
         """
         for attempt in range(max_retries + 1):
             try:
-                return self.translate_text(text)
+                return self.translate_text(text, from_lang, to_lang)
             except Exception as e:
                 if attempt >= max_retries:
                     raise e

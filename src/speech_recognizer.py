@@ -114,8 +114,8 @@ class SpeechRecognizer:
                 raise ModelLoadError(f"模型加载失败: {error_msg}")
     
     def transcribe(
-        self, 
-        audio_path: str, 
+        self,
+        audio_path: str,
         language: str = "en",
         progress_callback: Optional[ProgressCallback] = None,
         chunk_duration: int = 600,  # 10分钟分块
@@ -123,14 +123,14 @@ class SpeechRecognizer:
     ) -> List[Dict]:
         """
         转录音频文件，支持大文件分块处理以优化内存使用
-        
+
         Args:
             audio_path: 音频文件路径
-            language: 语言代码 (默认为英文 "en")
+            language: 语言代码 (支持 "en" 英文, "zh" 中文，等)
             progress_callback: 进度回调函数
             chunk_duration: 分块时长（秒），大文件会被分块处理
             enable_memory_optimization: 是否启用内存优化
-            
+
         Returns:
             List[Dict]: 包含转录结果的列表，每个元素包含start, end, text字段
         """
@@ -226,19 +226,25 @@ class SpeechRecognizer:
                 gc.collect()
     
     def _transcribe_direct(
-        self, 
-        audio_path: str, 
-        language: str, 
+        self,
+        audio_path: str,
+        language: str,
         progress_callback: Optional[ProgressCallback] = None
     ) -> List[Dict]:
         """
         直接转录音频文件（小文件或内存充足时使用）
         """
+        # 根据语言优化参数
+        beam_size = 5
+        if language == "zh":
+            # 中文语音识别优化参数
+            beam_size = 3  # 中文可以使用较小的beam_size
+
         # 执行转录
         segments, info = self.model.transcribe(
             audio_path,
             language=language,
-            beam_size=5,
+            beam_size=beam_size,
             word_timestamps=True
         )
         
@@ -283,10 +289,10 @@ class SpeechRecognizer:
         return transcription_results
     
     def _transcribe_chunked(
-        self, 
-        audio_path: str, 
-        language: str, 
-        progress_callback: Optional[ProgressCallback] = None, 
+        self,
+        audio_path: str,
+        language: str,
+        progress_callback: Optional[ProgressCallback] = None,
         chunk_duration: int = 600
     ) -> List[Dict]:
         """
@@ -330,11 +336,17 @@ class SpeechRecognizer:
                         chunk_file.name, '-y'
                     ], check=True, capture_output=True)
                     
+                    # 根据语言优化参数
+                    beam_size = 3  # 分块模式默认使用较小beam size以节省内存
+                    if language == "zh":
+                        # 中文语音识别特殊优化
+                        beam_size = 2  # 中文可以使用更小的beam_size
+
                     # 转录分块
                     segments, info = self.model.transcribe(
                         chunk_file.name,
                         language=language,
-                        beam_size=3,  # 减少beam size以节省内存
+                        beam_size=beam_size,
                         word_timestamps=True
                     )
                     

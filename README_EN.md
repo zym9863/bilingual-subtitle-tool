@@ -11,15 +11,15 @@ app_port: 7860
 
 # 🎬 Bilingual Subtitle Tool
 
-[🇨🇳 中文](README.md) | 🇺🇸 English
+🇨🇳 [中文](README.md) | 🇺🇸 English
 
-A lightweight tool for adding bilingual subtitles to videos with English audio. Supports both local GPU and Hugging Face Spaces CPU environments.
+A lightweight tool for adding bilingual subtitles to videos with Chinese or English audio. Supports both local GPU and Hugging Face Spaces CPU environments.
 
 ## ✨ Features
 
 - 🎵 **Auto Audio Extraction**: Extract audio from videos using MoviePy
-- 🎤 **AI Speech Recognition**: Integrated faster-whisper with GPU acceleration support
-- 🌐 **Smart Translation**: English-Chinese translation using Baidu Translate API
+- 🎤 **AI Speech Recognition**: Integrated faster-whisper, supports Chinese and English speech recognition with GPU acceleration
+- 🌐 **Smart Translation**: Bidirectional translation (Chinese-English, English-Chinese) using Baidu Translate API
 - 📝 **Subtitle Generation**: Generate bilingual subtitles in SRT format
 - 🔥 **Subtitle Burning**: Optional permanent subtitle embedding into video
 - 🖥️ **User-Friendly Interface**: Gradio-based web interface
@@ -99,6 +99,9 @@ BAIDU_APPKEY=your_baidu_appkey_here
 WHISPER_MODEL_SIZE=small  # tiny, base, small, medium, large
 WHISPER_DEVICE=auto      # auto, cpu, cuda
 
+# Language Configuration
+DEFAULT_AUDIO_LANGUAGE=en  # Default audio language: en(English), zh(Chinese)
+
 # Subtitle Style Configuration
 SUBTITLE_FONT_SIZE=24
 SUBTITLE_FONT_COLOR=white
@@ -124,13 +127,22 @@ MAX_FILE_SIZE=500        # MB
 
 1. **Upload Video**: Supports MP4, AVI, MOV, MKV, WMV, FLV, WebM formats
 2. **Configure Options**:
+   - **Select Audio Language**: Chinese or English (affects speech recognition and translation direction)
    - Select Whisper model size
    - Enter Baidu Translate API keys
-   - Choose subtitle type (Bilingual/English only/Chinese only)
+   - Choose subtitle type (Bilingual/Original only/Translation only)
    - Choose whether to burn subtitles into video
    - Adjust font size and color
 3. **Start Processing**: Click the "Start Processing" button
 4. **Download Results**: Download generated subtitle files and video files after processing
+
+### 🎯 Processing Flow
+
+**Chinese Audio Video**:
+1. Extract audio → 2. Chinese speech recognition → 3. Chinese-to-English translation → 4. Generate Chinese-English bilingual subtitles
+
+**English Audio Video**:
+1. Extract audio → 2. English speech recognition → 3. English-to-Chinese translation → 4. Generate English-Chinese bilingual subtitles
 
 ## 🌐 Deploy to Hugging Face Spaces
 
@@ -181,7 +193,8 @@ bilingual-subtitle-tool/
 ├── requirements.txt      # Python dependencies
 ├── pyproject.toml        # Project configuration
 ├── .env.example          # Environment variables example
-└── README.md             # Project documentation
+├── README.md             # Project documentation (Chinese)
+└── README_EN.md          # Project documentation (English)
 ```
 
 ## 🔑 Getting Baidu Translate API Keys
