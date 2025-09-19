@@ -305,7 +305,7 @@ class BilingualSubtitleApp:
                                 ("中文", "zh"),
                                 ("英文", "en")
                             ],
-                            value="en",
+                            value="zh",
                             label="🎵 音频语言",
                             info="选择视频中的主要音频语言"
                         )

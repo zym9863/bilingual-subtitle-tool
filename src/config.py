@@ -33,7 +33,7 @@ class Config:
     """应用程序配置类"""
     
     # 语言配置
-    DEFAULT_AUDIO_LANGUAGE: str = os.getenv("DEFAULT_AUDIO_LANGUAGE", "en")  # 默认音频语言
+    DEFAULT_AUDIO_LANGUAGE: str = os.getenv("DEFAULT_AUDIO_LANGUAGE", "zh")  # 默认音频语言
 
     # 百度翻译API配置
     BAIDU_APPID: Optional[str] = os.getenv("BAIDU_APPID")
